@@ -1,2 +1,2 @@
-local GameFrame = require(game.ReplicatedStorage:WaitForChild("GameFrame"))
+local GameFrame = require(script.Parent)
 GameFrame.loadLocalManagers()

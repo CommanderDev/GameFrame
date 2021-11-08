@@ -1,3 +1,3 @@
-local GameFrame = require(game.ReplicatedStorage.GameFrame)
+local GameFrame = require(script.Parent)
 
 GameFrame.loadAllManagers()
