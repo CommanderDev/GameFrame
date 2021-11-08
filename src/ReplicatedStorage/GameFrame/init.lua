@@ -85,17 +85,17 @@ else game.StarterPlayer:WaitForChild("StarterPlayerScripts"):WaitForChild("GameF
 addDirectiveToModuleCache(game.ReplicatedStorage)
 addDirectiveToModuleCache(localGameFrameFolder.Parent)
 
-function GameFrame.isLibrary(library: table)
+local function isLibrary(library: table)
     if library.isLibrary then return true else return false end
 end
 
-function GameFrame.require(moduleName: string)
+local function requireModule(moduleName: string)
     local module = moduleCache[moduleName]
     assert(module, moduleName.." Not in module cache")
     return require(module)
 end
 
-function GameFrame.loadLibrary(libraryName: string)
+local function loadLibrary(libraryName: string)
     local library: ModuleScript? = if libraries[libraryName] then libraries[libraryName] 
     else script.Libraries:FindFirstChild(libraryName)  or localGameFrameFolder.Libraries:FindFirstChild(libraryName)
     assert(library, libraryName.." Not found in libraries folder")
@@ -110,11 +110,11 @@ function GameFrame.loadLibrary(libraryName: string)
     return library
 end
 
-function GameFrame.isFunction(funcTable: table)
+local function isFunction(funcTable: table)
     if funcTable.isFunction then return true else return false end
 end
 
-function GameFrame.loadFunction(functionName: string)
+local function loadFunction(functionName: string)
     local func = if functions[functionName] then functions[functionName] 
     else script.Functions:FindFirstChild(functionName) or localGameFrameFolder.Functions:FindFirstChild(functionName)
     assert(func, functionName.." Not found in functions folder")
@@ -133,22 +133,22 @@ function GameFrame.loadFunction(functionName: string)
     return returnFunc
 end
 
-function GameFrame.isManagerLoaded(manager: table)
+local function isManagerLoaded(manager: table)
     if manager.isLoaded then return true else return false end
 end
 
-function GameFrame.waitForManagerLoaded(manager: table)
+local function waitForManagerLoaded(manager: table)
     repeat task.wait() until GameFrame.isManagerLoaded()
     return true
 end
 
 
-function GameFrame.getManager(managerName: string)
+local function getManager(managerName: string)
     assert(managers[managerName], managerName.." Is not in manager cache")
     return require(managers[managerName])
 end
 
-function GameFrame.loadManagersInDirective(directive: Folder)
+local function loadManagersInDirective(directive: Folder)
     local order
     local directiveDescendants = directive:GetDescendants()
     local directiveManagers = {}
@@ -182,55 +182,54 @@ function GameFrame.loadManagersInDirective(directive: Folder)
     for index, manager in next, directiveManagers do
         runManagerPost(manager)
     end
-
 end
 
-function GameFrame.isLocalManagersLoaded()
+local function isLocalManagersLoaded()
     if GameFrame.localManagersLoaded then return true else return false end
 end
 
-function GameFrame.isAllManagersLoaded()
+local function isAllManagersLoaded()
     if GameFrame.allManagersLoaded then return true else return false end
 end
 
-function GameFrame.waitForLocalManagersLoaded()
-    repeat task.wait() until GameFrame.isLocalManagersLoaded()
+local function waitForLocalManagersLoaded()
+    repeat task.wait() until isLocalManagersLoaded()
     return true
 end
 
-function GameFrame.waitForAllManagersLoaded()
-    repeat task.wait() until GameFrame.isAllManagersLoaded()
+local function waitForAllManagersLoaded()
+    repeat task.wait() until isAllManagersLoaded()
     return true
 end
 
-function GameFrame.waitForLocalManagersCallback(func)
-    GameFrame.waitForLocalManagersLoaded()
+local function waitForLocalManagersCallback(func)
+    waitForLocalManagersLoaded()
     return func()
 end
 
-function GameFrame.waitForAllManagersCallback(func)
-    GameFrame.waitForAllManagersLoaded()
+local function waitForAllManagersCallback(func)
+    waitForAllManagersLoaded()
     return func()
 end
 
-function GameFrame.loadLocalManagers()
-    GameFrame.loadManagersInDirective(localGameFrameFolder.Managers)
+local function loadLocalManagers()
+    loadManagersInDirective(localGameFrameFolder.Managers)
     GameFrame.localManagersLoaded = true 
 end
 
-function GameFrame.loadAllManagers()
-    GameFrame.loadLocalManagers()
-    GameFrame.loadManagersInDirective(script.Managers)
+local function loadAllManagers()
+    loadLocalManagers()
+    loadManagersInDirective(script.Managers)
     GameFrame.allManagersLoaded = true
 end
 
-function GameFrame.isManager(manager: table)
+local function isManager(manager: table)
     if manager.isManager then return true else return false end
 end
 
-function GameFrame.createManager(manager: table)
-    local TableUtil = GameFrame.loadLibrary("TableUtil")
-    local Network = GameFrame.loadLibrary("Network")
+local function createManager(manager: table)
+    local TableUtil = loadLibrary("TableUtil")
+    local Network = loadLibrary("Network")
     assert(manager, "manager is nil!")
     assert(manager.Name, "Manager requires a name!")
     local manager = TableUtil.Assign(manager, {
@@ -248,6 +247,45 @@ function GameFrame.createManager(manager: table)
     managers[manager.Name] = manager
     return manager
 end
+
+GameFrame.Require = requireModule
+GameFrame.require = requireModule
+GameFrame.IsLibrary = isLibrary
+GameFrame.isLibrary = isLibrary
+GameFrame.LoadLibrary = loadLibrary
+GameFrame.loadLibrary = loadLibrary
+GameFrame.IsFunction = isFunction
+GameFrame.isFunction = isFunction
+GameFrame.LoadFunction = loadFunction
+GameFrame.loadFunction = loadFunction
+GameFrame.IsManagerLoaded = isManagerLoaded
+GameFrame.isManagerLoaded = isManagerLoaded
+GameFrame.WaitForManagerLoaded = waitForManagerLoaded
+GameFrame.waitForManagerLoaded = waitForManagerLoaded
+GameFrame.GetManager = getManager
+GameFrame.getManager = getManager
+GameFrame.LoadManagersInDirective = loadManagersInDirective
+GameFrame.loadManagersInDirective = loadManagersInDirective
+GameFrame.IsLocalManagersLoaded = isLocalManagersLoaded
+GameFrame.isLocalManagersLoaded = isLocalManagersLoaded
+GameFrame.IsAllManagersLoaded = isAllManagersLoaded
+GameFrame.isAllManagersLoaded = isAllManagersLoaded
+GameFrame.WaitForLocalManagersLoaded = waitForLocalManagersLoaded
+GameFrame.waitForLocalManagersLoaded = waitForLocalManagersLoaded
+GameFrame.WaitForAllManagersLoaded = waitForAllManagersLoaded
+GameFrame.waitForAllManagersLoaded = waitForAllManagersLoaded
+GameFrame.WaitForLocalManagersCallback = waitForLocalManagersCallback
+GameFrame.waitForLocalManagersCallback = waitForLocalManagersCallback
+GameFrame.WaitForAllManagersCallback = waitForAllManagersCallback
+GameFrame.waitForAllManagersCallback = waitForAllManagersCallback
+GameFrame.LoadLocalManagers = loadLocalManagers
+GameFrame.loadLocalManagers = loadLocalManagers
+GameFrame.LoadAllManagers = loadAllManagers
+GameFrame.loadAllManagers = loadAllManagers
+GameFrame.IsManager = isManager
+GameFrame.isManager = isManager
+GameFrame.CreateManager = createManager
+GameFrame.createManager = createManager
 
 GameFrame.isLoaded = true
 return GameFrame

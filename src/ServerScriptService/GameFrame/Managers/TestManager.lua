@@ -5,7 +5,7 @@ local TestClass = GameFrame.require("TestClass")
 local TestManager: table = GameFrame.createManager {Name = script.Name, ProcessingOrder = 1}
 
 function TestManager:init()
-    self.framework.waitForAllManagersCallback(function()
+    self.framework.WaitForAllManagersCallback(function()
         print("All managers loaded!")
     end)
 end
