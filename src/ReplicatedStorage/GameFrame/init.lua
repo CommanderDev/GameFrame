@@ -32,6 +32,10 @@ local function runManagerPost(manager)
     end
 end
 
+function GameFrame.isLibrary(library: table)
+    if library.isLibrary then return true else return false end
+end
+
 function GameFrame.loadLibrary(libraryName: string)
     local library: ModuleScript? = if libraries[libraryName] then libraries[libraryName] 
     else script.Libraries:FindFirstChild(libraryName)  or localGameFrameFolder.Libraries:FindFirstChild(libraryName)
@@ -42,16 +46,44 @@ function GameFrame.loadLibrary(libraryName: string)
     if not libraries[libraryName] then 
         libraries[libraryName] = library
     end
+
+    library.isLibrary = true
     return library
 end
 
+function GameFrame.isFunction(funcTable: table)
+    if funcTable.isFunction then return true else return false end
+end
+
 function GameFrame.loadFunction(functionName: string)
-    local func = if functions[functionName] then functions[functionName] else script.Functions:FindFirstChild(functionName)
-    assert(func, functionName.." Not found in functions folder0")
-    if not functions[functionName] then
-        functions[functionName] = library
+    local func = if functions[functionName] then functions[functionName] 
+    else script.Functions:FindFirstChild(functionName) or localGameFrameFolder.Functions:FindFirstChild(functionName)
+    assert(func, functionName.." Not found in functions folder")
+    if typeof(func) == "Instance" then 
+        func = require(func)
     end
-    return func
+    if not functions[functionName] then
+        functions[functionName] = func
+    end
+
+    local returnFunc = setmetatable({
+        isFunction = true;
+    }, {
+        __call = func
+    })
+    return returnFunc
+end
+
+function GameFrame.loadClasses(className: string)
+    local class = if classes[className] then classes[className]
+    else script.Classes:FindFirstChild(className) or localGameFrameFolder.Classes:FindFirstChild(className)
+    assert(class, className.."Not found in classes folder")
+    if typeof(class) == "Instance" then 
+        class = require(class)
+    end
+    if not classes[className] then 
+
+    end
 end
 
 function GameFrame.loadManagerByName(managerName: string)
