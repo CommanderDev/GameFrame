@@ -1,5 +1,4 @@
 local GameFrame = require(game.ReplicatedStorage.GameFrame)
-local Network = GameFrame.loadLibrary("Network")
 
 local NetworkManager = GameFrame.createManager {Name = "NetworkManager"}
 
