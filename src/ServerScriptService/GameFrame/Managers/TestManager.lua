@@ -1,10 +1,12 @@
 local GameFrame = require(game.ReplicatedStorage.GameFrame)
 
-local TestManager: table = GameFrame.createManager {Name = script.Name, ProcessingOrder = 2}
+local TestClass = GameFrame.require("TestClass")
+
+local TestManager: table = GameFrame.createManager {Name = script.Name, ProcessingOrder = 1, Disabled = true}
 
 function TestManager:init()
-    self.Network = self.frame.loadLibrary("Network")
-    print(self.frame.isLibrary(self.Network))
+    self.class = TestClass.new()
+    self.class:test()
 end
 
 return TestManager

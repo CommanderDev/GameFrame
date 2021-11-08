@@ -5,15 +5,26 @@ local GameFrame = {}
 local libraries = {}
 local functions = {}
 local managers = {}
+local moduleCache = {}
 
 local localGameFrameFolder
 
 local isServer = RunService:IsServer()
 
-if isServer then 
-    localGameFrameFolder = game.ServerScriptService.GameFrame
-else
-    localGameFrameFolder = game.StarterPlayer:WaitForChild("StarterPlayerScripts"):WaitForChild("GameFrame")
+local function addDirectiveToModuleCache(directive)
+    for index, object in next, directive:GetDescendants() do 
+        if object:IsA("ModuleScript") then 
+            if object.Parent == localGameFrameFolder.Functions 
+                or object.Parent == localGameFrameFolder.Libraries 
+                or object.Parent == localGameFrameFolder.Managers 
+                or object.Parent == script.Functions
+                or object.Parent == script.Libraries 
+                or object.Parent == script.Managers then
+                continue 
+            end
+            moduleCache[object.Name] = object
+        end
+    end
 end
 
 local function invalidManagerRequirements(name: string)
@@ -22,18 +33,33 @@ end
 
 local function runManager(manager)
     if manager.init then 
-        manager:init()
+        task.spawn(function()
+            manager:init()
+        end)
     end
 end
 
 local function runManagerPost(manager)
     if manager.postinit then
-        manager:postinit()
+        task.spawn(function()
+            manager:postinit()
+        end)
     end
 end
 
+localGameFrameFolder = if isServer then game.ServerScriptService.GameFrame 
+else game.StarterPlayer:WaitForChild("StarterPlayerScripts"):WaitForChild("GameFrame")
+addDirectiveToModuleCache(script)
+addDirectiveToModuleCache(localGameFrameFolder)
+
 function GameFrame.isLibrary(library: table)
     if library.isLibrary then return true else return false end
+end
+
+function GameFrame.require(moduleName: string)
+    local module = moduleCache[moduleName]
+    assert(module, moduleName.." Not in module cache")
+    return require(module)
 end
 
 function GameFrame.loadLibrary(libraryName: string)
@@ -74,34 +100,6 @@ function GameFrame.loadFunction(functionName: string)
     return returnFunc
 end
 
-function GameFrame.loadClasses(className: string)
-    local class = if classes[className] then classes[className]
-    else script.Classes:FindFirstChild(className) or localGameFrameFolder.Classes:FindFirstChild(className)
-    assert(class, className.."Not found in classes folder")
-    if typeof(class) == "Instance" then 
-        class = require(class)
-    end
-    if not classes[className] then 
-
-    end
-end
-
-function GameFrame.loadManagerByName(managerName: string)
-    local manager: ModuleScript? = if managers[managerName] then managers[managerName] 
-    else script.Managers:FindFirstChild(managerName) or localGameFrameFolder.Managers:FindFirstChild(managerName)
-    assert(manager, managerName.." Not found in managers folder")
-    if not managers[managerName] then
-        managers[managerName] = manager
-    end
-    manager = require(manager)
-    if manager.init then 
-        task.spawn(function()
-            manager:init()
-        end)
-    end
-    return manager
-end
-
 function GameFrame.loadManagersInDirective(directive: Folder)
     local order
     local directiveChildren = directive:GetChildren()
@@ -109,6 +107,7 @@ function GameFrame.loadManagersInDirective(directive: Folder)
     for index, module in next, directiveChildren do 
         if module.ClassName ~= "ModuleScript" then continue end
         local manager = require(module)
+        if manager.Disabled then continue end
         if not manager.isManager then invalidManagerRequirements(module.Name)  end
         if manager.ProcessingOrder then 
             if not order then
@@ -148,13 +147,13 @@ end
 function GameFrame.createManager(manager: table)
     local TableUtil = GameFrame.loadLibrary("TableUtil")
     local Network = GameFrame.loadLibrary("Network")
-    assert(manager, "manager is nil")
-    assert(manager.Name, "Manager requires a name.")
+    assert(manager, "manager is nil!")
+    assert(manager.Name, "Manager requires a name!")
     local manager = TableUtil.Assign(manager, {
         isManager = true;
-        frame = GameFrame;
-        libraries = libraries;
-        functions = functions;
+        Disabled = manager.Disabled;
+        framework = GameFrame;
+        Name = manager.Name;
         FireRemote = if isServer then Network.fireClient else Network.fireServer;
         InvokeRemote = if isServer then Network.invokeClient else Network.invokeServer;
         FireAllClients = if isServer then Network.fireAllClients else false;
@@ -165,4 +164,5 @@ function GameFrame.createManager(manager: table)
     return manager
 end
 
+GameFrame.isLoaded = true
 return GameFrame
