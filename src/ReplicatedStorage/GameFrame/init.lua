@@ -37,6 +37,7 @@ local function runManager(manager)
             manager:init()
         end)
     end
+    manager.isLoaded = true
 end
 
 local function runManagerPost(manager)
@@ -100,6 +101,20 @@ function GameFrame.loadFunction(functionName: string)
     return returnFunc
 end
 
+function GameFrame.isManagerLoaded(manager: table)
+    if manager.isLoaded then return true else return false end
+end
+
+function GameFrame.waitForManagerLoaded(manager: table)
+    repeat task.wait() until GameFrame.isManagerLoaded()
+    return true
+end
+
+function GameFrame.getManager(managerName: string)
+    assert(managers[managerName], managerName.." Is not in manager cache")
+    return require(managers[managerName])
+end
+
 function GameFrame.loadManagersInDirective(directive: Folder)
     local order
     local directiveChildren = directive:GetChildren()
@@ -121,6 +136,7 @@ function GameFrame.loadManagersInDirective(directive: Folder)
             runManager(manager)
         end
         directiveManagers[manager.Name] = manager
+        managers[manager.Name] = module
     end
 
     if order then 
@@ -133,10 +149,21 @@ function GameFrame.loadManagersInDirective(directive: Folder)
     for index, manager in next, directiveManagers do
         runManagerPost(manager)
     end
+
+end
+
+function GameFrame.isLocalManagersLoaded()
+    if GameFrame.localManagersLoaded then return true else return false end
+end
+
+function GameFrame.waitForLocalManagersLoaded()
+    repeat task.wait() until GameFrame.isLocalManagersLoaded()
+    return true
 end
 
 function GameFrame.loadLocalManagers()
     GameFrame.loadManagersInDirective(localGameFrameFolder.Managers)
+    GameFrame.localManagersLoaded = true 
 end
 
 function GameFrame.loadAllManagers()
@@ -154,6 +181,7 @@ function GameFrame.createManager(manager: table)
         Disabled = manager.Disabled;
         framework = GameFrame;
         Name = manager.Name;
+        isLoaded = false;
         FireRemote = if isServer then Network.fireClient else Network.fireServer;
         InvokeRemote = if isServer then Network.invokeClient else Network.invokeServer;
         FireAllClients = if isServer then Network.fireAllClients else false;
