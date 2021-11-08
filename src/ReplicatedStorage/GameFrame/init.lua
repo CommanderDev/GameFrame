@@ -1,3 +1,35 @@
+--[[
+    Methods:
+
+    GameFrmae.loadLibrary(name: string) -> Library - Requires a module from the library folder.
+
+    GameFrame.loadFunctions(name: string) -> Function - Requires a module from the function folder. The return value of the module must be a function.
+
+    GameFrame.getManager(name: string) -> Manager - Requires a manager, recommended to not use this unless there's a valid reason.
+
+    GameFrame.require(name: string) -> Module - Requires any module by name that is not associated with essential gameframe element 
+                                                such as Library and Manager modules. Plese use the intended methods when requiring such modules.
+
+    GameFrame.createManager(parameters: table) -> table - Creates a manager which will be the main source of game functionality.
+    GameFrame.loadManagersInDirective(directive: Folder) -> void - Loads every manager in the scope of a specified directive. 
+                                                                    This also takes into account descendants
+    GameFrame.isLibrary(lib: Library) -> boolean - Returns if the given parameter is a library or not.
+    GameFrame.isFunction(func: Function) -> boolean - Returns if the given parameter is a function or not.
+    GameFrame.isManager(manager: Manager) -> boolean - Returns if the given parameter is a manager or not.
+    GameFrame.isManagerLoaded(manager: Manager) -> boolean - Returns if a certain manager has been loaded.
+    GameFrame.waitForManagerLoaded(manager: Manager) -> void - Waits until the given manager is completely loaded.
+    
+    GameFrame.isLocalManagersLoaded() -> boolean - Returns if all of the lcoal managers have been loaded.
+    GameFrame.isAllManagersLoaded -> boolean - Returns if every manager in the game has been loaded.
+                                                This of course excludes managers on the client if the module is running on the server and vice versa.
+
+    GameFrame.waitForLocalManagersLoaded() -> boolean - Waits until all the local managers have been loaded
+    GameFrame.waitForLocalManagersCallback -> function - The same as the waitForLocalManagerLoaded method except this accepts a callback 
+                                                           This can be useful for much cleaner code for when a certain manager gets loaded, 
+                                                            The function will be called.
+    GameFrame.waitForAllManagersLoaded() -> boolean - Waits until every manager has been loaded
+    GameFrame.waitForAllManagersCallback() -> function - The same as waitForLocalManagersCallback except it takes all managers.                                                                
+]]
 local RunService = game:GetService("RunService")
 
 local GameFrame = {}
@@ -50,8 +82,8 @@ end
 
 localGameFrameFolder = if isServer then game.ServerScriptService.GameFrame 
 else game.StarterPlayer:WaitForChild("StarterPlayerScripts"):WaitForChild("GameFrame")
-addDirectiveToModuleCache(script)
-addDirectiveToModuleCache(localGameFrameFolder)
+addDirectiveToModuleCache(game.ReplicatedStorage)
+addDirectiveToModuleCache(localGameFrameFolder.Parent)
 
 function GameFrame.isLibrary(library: table)
     if library.isLibrary then return true else return false end
@@ -110,6 +142,7 @@ function GameFrame.waitForManagerLoaded(manager: table)
     return true
 end
 
+
 function GameFrame.getManager(managerName: string)
     assert(managers[managerName], managerName.." Is not in manager cache")
     return require(managers[managerName])
@@ -117,9 +150,9 @@ end
 
 function GameFrame.loadManagersInDirective(directive: Folder)
     local order
-    local directiveChildren = directive:GetChildren()
+    local directiveDescendants = directive:GetDescendants()
     local directiveManagers = {}
-    for index, module in next, directiveChildren do 
+    for index, module in next, directiveDescendants do 
         if module.ClassName ~= "ModuleScript" then continue end
         local manager = require(module)
         if manager.Disabled then continue end
@@ -156,9 +189,28 @@ function GameFrame.isLocalManagersLoaded()
     if GameFrame.localManagersLoaded then return true else return false end
 end
 
+function GameFrame.isAllManagersLoaded()
+    if GameFrame.allManagersLoaded then return true else return false end
+end
+
 function GameFrame.waitForLocalManagersLoaded()
     repeat task.wait() until GameFrame.isLocalManagersLoaded()
     return true
+end
+
+function GameFrame.waitForAllManagersLoaded()
+    repeat task.wait() until GameFrame.isAllManagersLoaded()
+    return true
+end
+
+function GameFrame.waitForLocalManagersCallback(func)
+    GameFrame.waitForLocalManagersLoaded()
+    return func()
+end
+
+function GameFrame.waitForAllManagersCallback(func)
+    GameFrame.waitForAllManagersLoaded()
+    return func()
 end
 
 function GameFrame.loadLocalManagers()
@@ -167,8 +219,9 @@ function GameFrame.loadLocalManagers()
 end
 
 function GameFrame.loadAllManagers()
-    loadLocalManagers()
+    GameFrame.loadLocalManagers()
     GameFrame.loadManagersInDirective(script.Managers)
+    GameFrame.allManagersLoaded = true
 end
 
 function GameFrame.isManager(manager: table)
