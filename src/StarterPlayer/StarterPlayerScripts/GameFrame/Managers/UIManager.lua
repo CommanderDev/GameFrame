@@ -11,8 +11,14 @@ local UIManager = GameFrame.CreateManager {Name = script.Name}
 
 function UIManager:init()
     Frame.Visible = true
-    Frame.BackgroundColor3 = Color3.fromRGB(255,0,0)
-    print(Frame)
+    while task.wait(1) do
+        Frame.BackgroundColor3 = Color3.fromRGB(255,0,0)
+        print(Frame)
+        task.wait(1) 
+        Frame.BackgroundColor3 = Color3.fromRGB(0,255,0)
+        task.wait(1)
+        Frame.BackgroundColor3 = Color3.fromRGB(0,0,255)
+    end
 end
 
 return UIManager

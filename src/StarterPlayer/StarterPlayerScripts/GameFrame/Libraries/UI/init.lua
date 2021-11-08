@@ -18,13 +18,12 @@ end
 RunService.RenderStepped:Connect(function()
     for index, class in next, uiClasses do 
         class:Update()
-        class.previousState = class
     end
 end)
 
 function UI:Update()
     for index, property in next, self.properties do 
-        if not self[property] or self[property] == self.previousState[property] then continue end
+        if not self[property] or self[property] == self.uiObject[property] then continue end
         self.uiObject[property] = self[property]
     end
 end
@@ -39,7 +38,6 @@ function UI.new(uiObject: table, parameters)
     self.uiObject = uiObject
     self.uiGroup = parameters.uiGroup or "Main"
     uiClasses[uiObject] = self
-    self.previousState = {}
     return self
 end
 
