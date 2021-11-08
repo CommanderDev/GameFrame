@@ -171,6 +171,10 @@ function GameFrame.loadAllManagers()
     GameFrame.loadManagersInDirective(script.Managers)
 end
 
+function GameFrame.isManager(manager: table)
+    if manager.isManager then return true else return false end
+end
+
 function GameFrame.createManager(manager: table)
     local TableUtil = GameFrame.loadLibrary("TableUtil")
     local Network = GameFrame.loadLibrary("Network")
