@@ -23,18 +23,23 @@ end)
 
 function UI:Update()
     for index, property in next, self.properties do 
-        if not self[property] or self[property] == self.uiObject[property] then continue end
+        if self[property] == self.uiObject[property] then continue end
         self.uiObject[property] = self[property]
     end
 end
 
-function UI.new(uiObject: table, parameters)
+function UI.new(uiObject, parameters)
     assert(uiObject, "UI class need a object.")
 
     assert(table.find(validElements, uiObject.ClassName), "Element that was passed to UI class is invalid")
     if not parameters then parameters = {} end
     local self = require(script[uiObject.ClassName]).new(uiObject, parameters)
-
+    self.parameters = parameters
+    if parameters.callbacks then 
+        self.callbacks = parameters.callbacks
+    else
+        self.callbacks = {}
+    end
     self.uiObject = uiObject
     self.uiGroup = parameters.uiGroup or "Main"
     uiClasses[uiObject] = self
@@ -47,6 +52,22 @@ end
 
 function UI:pull()
 
+end
+
+function UI:popup()
+    if self.callbacks.Popup then 
+        self.callbacks.Popup(self)
+    else
+        self:SetVisible(true)
+    end
+end
+
+function UI:close()
+    if self.callbacks.Close then
+        self.callbacks.Close(self)
+    else
+        self:SetVisible(false)
+    end
 end
 
 function UI.getPlayerGui()

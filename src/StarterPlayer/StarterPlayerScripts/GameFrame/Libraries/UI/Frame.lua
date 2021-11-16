@@ -39,16 +39,11 @@ function Frame.new(frameObject, parameters)
         self[property] = parameters[property] or frameObject[property]
     end
 
-    self.propertyChangedMethods = {
-        Enabled = function()
-            
-        end
-    }
     return self
 end
 
 function Frame:SetVisible(boolean)
-    self.frameObject.Visible = boolean
+    self.Visible = boolean
 end
 
 return Frame
