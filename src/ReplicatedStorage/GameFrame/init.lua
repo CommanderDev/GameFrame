@@ -236,6 +236,7 @@ local function createManager(manager: table)
         isManager = true;
         Disabled = manager.Disabled;
         framework = GameFrame;
+        Framework = GameFrame;
         Name = manager.Name;
         isLoaded = false;
         FireRemote = if isServer then Network.fireClient else Network.fireServer;
