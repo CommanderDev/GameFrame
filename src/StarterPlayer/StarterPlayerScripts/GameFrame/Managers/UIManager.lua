@@ -5,8 +5,6 @@ local UIGroup = GameFrame.loadLibrary("UIGroup")
 
 local PlayerGui = UI.getPlayerGui()
 
-local ScreenGui = PlayerGui:WaitForChild("ScreenGui")
-
 local UIManager = GameFrame.CreateManager {Name = script.Name}
 
 --[[
